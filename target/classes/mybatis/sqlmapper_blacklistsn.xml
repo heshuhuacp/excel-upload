@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >  
+<mapper namespace="com.example.demo.mapper.BlackListSNMapper" >
+
+    <insert id="batchInsertBlackListSN" parameterType="java.util.List">
+        insert into black_list_sn
+          (qhid,version,serialno,mpn,hub,op_type,is_sku_sc,addtime,addwho,edittime,editwho)
+        <foreach collection="list" index="index" item="item" separator="union all">
+            select
+                 	#{item.qhId},
+                 	#{item.version},
+                	#{item.serialNo},
+                    #{item.mpn},
+                    #{item.hub},
+                    '1',
+                    '0',
+                    sysdate,
+                    'Manual',
+                    sysdate,
+                    'Manual'
+
+            from dual
+        </foreach>
+    </insert>  
+      
+</mapper>

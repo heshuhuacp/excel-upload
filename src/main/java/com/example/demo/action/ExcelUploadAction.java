@@ -4,7 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import com.example.demo.handler.UploadThread;
+import com.example.demo.model.DataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.model.User;
-import com.example.demo.service.UserService;
+import com.example.demo.model.BlackListSN;
+import com.example.demo.service.BlackListSNService;
 import com.example.demo.util.ExcelUtil;
 
 /**
@@ -26,10 +31,12 @@ import com.example.demo.util.ExcelUtil;
 @Controller
 public class ExcelUploadAction {
 
-	private Logger logger = LoggerFactory.getLogger(ExcelUploadAction.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExcelUploadAction.class);
+
+	private static final int THREAD_SIZE = 5;
 
 	@Autowired
-	private UserService userService;
+	private BlackListSNService blackListSNService;
 
 	@RequestMapping("/uploadExcel")
 	public String uploadExcel() {
@@ -57,15 +64,28 @@ public class ExcelUploadAction {
 			return resultMap;
 		}
 
-		List<User> list = new ArrayList<>();
+		List<BlackListSN> list = new ArrayList<>();
 		logger.info("从Excel读取数据封装成List...");
-		Map<String, Object> dataMap = ExcelUtil.readExcel(file, list, User.class);
+		Map<String, Object> dataMap = ExcelUtil.readExcel(file, list, BlackListSN.class);
 		@SuppressWarnings("unchecked")
-		List<User> dataList = (List<User>) dataMap.get("data");
+		List<BlackListSN> dataList = (List<BlackListSN>) dataMap.get("data");
 		logger.info("开始插入数据,每次1000条数据...");
-		userService.batchInsertUser(dataList);
+		batchInsertUser(dataList);
 		String errorMsg = (String) dataMap.get("errorMsg");
 		return resultMap;
+	}
+
+	public void batchInsertUser(List<BlackListSN> blackListSNList){
+
+		DataCache dataCache = new DataCache(blackListSNList);
+
+		ExecutorService executor = Executors.newFixedThreadPool(THREAD_SIZE);
+		for (int i = 0; i < THREAD_SIZE; i++) {
+			logger.info("开始插入数据,调用线程池处理");
+			executor.execute(new UploadThread(dataCache, blackListSNService));
+		}
+		((ExecutorService) executor).shutdown();
+
 	}
 
 	

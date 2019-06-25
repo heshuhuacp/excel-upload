@@ -1,5 +1,7 @@
 package com.example.demo.util;
 
+import org.apache.poi.ss.usermodel.Cell;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -57,32 +59,33 @@ public enum ClazzEnum {
      * @date
      */
     @SuppressWarnings("rawtypes")
-    public static Object getOriginTypeValueByType(String origin,Class clazz){
+    public static Object getOriginTypeValueByType(Cell cellValue, Class clazz){
 
-        if(INTEGER.getAttributeType().equals(clazz.toString())){
+        try {
+            if(INTEGER.getAttributeType().equals(clazz.toString())){
 
-            return Integer.parseInt(origin);
-        }
-        if(BOOLEAN.getAttributeType().equals(clazz.toString())){
+                return cellValue.getNumericCellValue();
 
-            return Boolean.valueOf(origin);
-        }
-        if(DATE.getAttributeType().equals(clazz.toString())){
-
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                return sdf.parse(origin);
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
-            return null;
-        }
-        if(BIGDECIMAL.getAttributeType().equals(clazz.toString())){
+            if(BOOLEAN.getAttributeType().equals(clazz.toString())){
 
-            return new BigDecimal(origin);
-        }
+                return cellValue.getBooleanCellValue();
+            }
+            if(DATE.getAttributeType().equals(clazz.toString())){
 
-        return origin;
+                return cellValue.getDateCellValue();
+            }
+            if(BIGDECIMAL.getAttributeType().equals(clazz.toString())){
+
+                return cellValue.getNumericCellValue();
+            }
+            if(STRING.getAttributeType().equals(clazz.toString())){
+                return cellValue.getStringCellValue();
+            }
+            return String.valueOf(new Double(cellValue.getNumericCellValue()).intValue());
+        } catch (Exception e) {
+            return String.valueOf(new Double(cellValue.getNumericCellValue()).intValue());
+        }
 
     }
 

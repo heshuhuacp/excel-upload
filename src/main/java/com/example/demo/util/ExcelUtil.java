@@ -92,9 +92,9 @@ public class ExcelUtil {
 						// 属性类型
 						cellNameV = cellNameV.substring(0, 1).toUpperCase() + cellNameV.substring(1); // 将属性的首字符大写，方便构造get，set方法
 						Method m = clazz.getMethod("set" + cellNameV, attributeClazz);
-						String value = cellValue.getStringCellValue();
+						//String value = cellValue.getStringCellValue();
 
-						m.invoke(obj, ClazzEnum.getOriginTypeValueByType(value, attributeClazz));
+						m.invoke(obj, ClazzEnum.getOriginTypeValueByType(cellValue, attributeClazz));
 					} else {
 						rowMessage += "第" + (c + 1) + "列数据有问题，请仔细检查；";
 					}
@@ -104,7 +104,6 @@ public class ExcelUtil {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {
